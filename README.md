@@ -1,53 +1,44 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-S2 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- |
+# FreeRTOS Semaphore Example
 
-# Hello World Example
+This project demonstrates how to use a binary semaphore in FreeRTOS to synchronize two tasks (`task1` and `task2`). The tasks share a common variable `sharedValue` and perform mathematical operations on it while ensuring that the access is mutually exclusive using a semaphore.
 
-Starts a FreeRTOS task to print "Hello World".
+## Description
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+In this example:
+- `task1` increments the shared value by 5 every 2 seconds.
+- `task2` decrements the shared value by 3 every 4 seconds.
+- Both tasks use a binary semaphore to ensure that they do not access the shared variable simultaneously.
 
-## How to use example
+The semaphore guarantees that only one task can modify the `sharedValue` at a time, thus avoiding race conditions and data corruption.
 
-Follow detailed instructions provided specifically for this example. 
+## How It Works
 
-Select the instructions depending on Espressif chip installed on your development board:
+1. **Semaphore Initialization:**
+   - A binary semaphore is created using `xSemaphoreCreateBinary()`.
+   - The semaphore is initialized (set to "available") by calling `xSemaphoreGive()` before starting the tasks.
 
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
+2. **Task Behavior:**
+   - `task1`: Tries to take the semaphore every 2 seconds. If successful, it increments the shared value by 5, prints it, and releases the semaphore.
+   - `task2`: Tries to take the semaphore every 4 seconds. If successful, it decrements the shared value by 3, prints it, and releases the semaphore.
 
+3. **Failure to Acquire Semaphore:**
+   - If a task fails to acquire the semaphore within 10 ticks, it prints an error message (`Failed to take semaphore`).
 
-## Example folder contents
+## Code Breakdown
 
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
+- **app_main():** Initializes the semaphore and creates both tasks.
+- **task1 and task2:** These functions are run as separate tasks and perform operations on the shared variable.
 
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both). 
+## Prerequisites
 
-Below is short explanation of remaining files in the project folder.
+- ESP-IDF installed on your machine.
+- A supported ESP32 board.
 
-```
-├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
-├── main
-│   ├── CMakeLists.txt
-│   └── hello_world_main.c
-└── README.md                  This is the file you are currently reading
-```
+## How to Run
 
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
-
-## Troubleshooting
-
-* Program upload failure
-
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
-
-## Technical support and feedback
-
-Please use the following feedback channels:
-
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
-
-We will get back to you as soon as possible.
+1. Clone this repository and navigate to the project folder.
+2. Run the following commands to configure and flash the code to your ESP32:
+   ```bash
+   idf.py set-target esp32
+   idf.py menuconfig
+   idf.py flash monitor
